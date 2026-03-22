@@ -2,11 +2,11 @@ import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-export default function DashboardScreen() {
+export default function InvestScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">Dashboard</ThemedText>
-      <ThemedText>Coming soon...</ThemedText>
+      <ThemedText type="title">Invest</ThemedText>
+      <ThemedText>View your investments here.</ThemedText>
     </ThemedView>
   );
 }

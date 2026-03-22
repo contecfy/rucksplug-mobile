@@ -2,11 +2,11 @@ import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 
-export default function DashboardScreen() {
+export default function ProfileScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">Dashboard</ThemedText>
-      <ThemedText>Coming soon...</ThemedText>
+      <ThemedText type="title">Profile</ThemedText>
+      <ThemedText>Manage your account settings.</ThemedText>
     </ThemedView>
   );
 }
