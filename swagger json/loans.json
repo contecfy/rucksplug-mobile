@@ -1,0 +1,38 @@
+[
+    {
+        "client": "69bfb04cba63c6bab7b7459d",
+        "amount": 150000,
+        "interestRate": 20,
+        "durationDays": 30,
+        "repaymentFrequency": "weekly",
+        "startDate": "2026-03-22T00:00:00Z",
+        "purpose": "Business Expansion"
+    },
+    {
+        "client": "69bfb04cba63c6bab7b7459e",
+        "amount": 100000,
+        "interestRate": 20,
+        "durationDays": 30,
+        "repaymentFrequency": "daily",
+        "startDate": "2026-03-23T00:00:00Z",
+        "purpose": "Emergency Medical"
+    },
+    {
+        "client": "69bfb04cba63c6bab7b7459f",
+        "amount": 300000,
+        "interestRate": 20,
+        "durationDays": 30,
+        "repaymentFrequency": "weekly",
+        "startDate": "2026-03-24T00:00:00Z",
+        "purpose": "Inventory Purchase"
+    },
+    {
+        "client": "69bfb04cba63c6bab7b745a0",
+        "amount": 200000,
+        "interestRate": 20,
+        "durationDays": 30,
+        "repaymentFrequency": "weekly",
+        "startDate": "2026-03-25T00:00:00Z",
+        "purpose": "Personal Use"
+    }
+]

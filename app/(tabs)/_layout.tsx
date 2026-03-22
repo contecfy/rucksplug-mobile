@@ -9,30 +9,28 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const theme = colorScheme ?? 'light';
-  const activeColor = theme === 'light' ? '#000000' : '#FFFFFF';
-  const inactiveColor = theme === 'light' ? '#888888' : '#777777';
-  const backgroundColor = theme === 'light' ? '#FFFFFF' : '#000000';
+  const themeColors = Colors[theme];
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: inactiveColor,
+        tabBarActiveTintColor: themeColors.tabIconSelected,
+        tabBarInactiveTintColor: themeColors.tabIconDefault,
         headerShown: true,
         headerStyle: {
-          backgroundColor: backgroundColor,
+          backgroundColor: themeColors.background,
         },
         headerTitleStyle: {
-          fontFamily: 'Bentham_400Regular',
-          color: activeColor,
+          fontFamily: 'Inter_700Bold',
+          color: themeColors.text,
         },
         tabBarStyle: {
-          backgroundColor: backgroundColor,
-          borderTopColor: theme === 'light' ? '#EEEEEE' : '#222222',
+          backgroundColor: themeColors.background,
+          borderTopColor: themeColors.borderColor,
         },
         tabBarButton: HapticTab,
         tabBarLabelStyle: {
-          fontFamily: 'Bentham_400Regular',
+          fontFamily: 'Inter_400Regular',
           fontSize: 12,
         },
       }}>

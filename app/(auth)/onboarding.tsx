@@ -35,8 +35,10 @@ export default function Onboarding() {
 
     const cardBackground = useThemeColor({}, 'card');
     const textColor = useThemeColor({}, 'text');
-    const buttonBackground = theme === 'light' ? '#000000' : '#FFFFFF';
-    const buttonText = theme === 'light' ? '#FFFFFF' : '#000000';
+    const buttonBackground = useThemeColor({}, 'tint');
+    const buttonText = useThemeColor({}, 'background');
+    const tintColor = useThemeColor({}, 'tint');
+    const background = useThemeColor({}, 'background');
 
     const handleNext = () => {
         if (currentSlide < SLIDES.length - 1) {
@@ -59,8 +61,8 @@ export default function Onboarding() {
             </View>
 
             <View style={[styles.card, { backgroundColor: cardBackground }]}>
-                <ThemedText type="title" style={styles.title}>{slide.title}</ThemedText>
-                <ThemedText style={styles.description}>{slide.description}</ThemedText>
+                <ThemedText type="boldPrecision" style={styles.title}>{slide.title}</ThemedText>
+                <ThemedText type="precision" style={styles.description}>{slide.description}</ThemedText>
                 
                 <View style={styles.pagination}>
                     {SLIDES.map((_, index) => (
@@ -80,7 +82,7 @@ export default function Onboarding() {
                     fullWidth
                     borderRadius={12}
                     style={{ backgroundColor: buttonBackground } as any}
-                    textStyle={{ color: buttonText }}
+                    textStyle={{ color: buttonText, fontFamily: 'Inter_600SemiBold' }}
                 />
                 
                 {currentSlide < SLIDES.length - 1 && (
@@ -119,11 +121,8 @@ const styles = StyleSheet.create({
         padding: 30,
         borderRadius: 30,
         alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-        elevation: 10,
+        borderWidth: 1,
+        borderColor: "rgba(0,0,0,0.05)",
     },
     title: {
         textAlign: "center",
@@ -146,11 +145,11 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
     },
     activeDot: {
-        backgroundColor: "#0a7ea4", // Keep a subtle color for pagination? Or make it tint?
+        backgroundColor: '#0a7ea4', // Keeping brand color for active dot if desired, or use tintColor
         width: 20,
     },
     inactiveDot: {
-        backgroundColor: "#D1D1D1",
+        backgroundColor: '#D1D1D1', // Use mutedText?
     },
     skipButton: {
         marginTop: 12,

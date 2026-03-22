@@ -17,6 +17,14 @@ export const Colors = {
     icon: '#333333',
     tabIconDefault: '#888888',
     tabIconSelected: tintColorLight,
+    success: '#4CAF50',
+    warning: '#FFC107',
+    danger: '#F44336',
+    info: '#2196F3',
+    borderColor: 'rgba(0,0,0,0.05)',
+    white: '#FFFFFF',
+    black: '#000000',
+    mutedText: '#999999',
   },
   dark: {
     text: '#FFFFFF',
@@ -26,11 +34,18 @@ export const Colors = {
     icon: '#CCCCCC',
     tabIconDefault: '#777777',
     tabIconSelected: tintColorDark,
+    success: '#66BB6A',
+    warning: '#FFD54F',
+    danger: '#EF5350',
+    info: '#42A5F5',
+    borderColor: 'rgba(255,255,255,0.1)',
+    white: '#FFFFFF',
+    black: '#000000',
+    mutedText: '#666666',
   },
 };
 
 export const Fonts = {
-  bentham: 'Bentham_400Regular',
   sans: Platform.select({
     ios: 'system-ui',
     default: 'normal',

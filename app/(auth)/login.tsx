@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLogin } from '@/hooks/use-auth';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -15,41 +16,54 @@ export default function LoginScreen() {
   
   const cardBackground = useThemeColor({}, 'card');
   const textColor = useThemeColor({}, 'text');
-  const buttonBackground = theme === 'light' ? '#000000' : '#FFFFFF';
-  const buttonText = theme === 'light' ? '#FFFFFF' : '#000000';
-  const inputBackground = theme === 'light' ? '#FFFFFF' : '#222222';
-  const borderColor = theme === 'light' ? '#EEEEEE' : '#333333';
+  const buttonBackground = useThemeColor({}, 'tint');
+  const buttonText = useThemeColor({}, 'background');
+  const inputBackground = useThemeColor({}, 'card');
+  const borderColor = useThemeColor({}, 'borderColor');
+  const mutedText = useThemeColor({}, 'mutedText');
+  const tintColor = useThemeColor({}, 'tint');
+  const background = useThemeColor({}, 'background');
   
   const [loginMethod, setLoginMethod] = useState<'phone' | 'email'>('phone');
   const [phone, setPhone] = useState<any>({ country: { code: 'UG', dial: '+256' }, number: '', full: '' });
   const [pin, setPin] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState({ title: '', desc: '' });
   
-  const handleLogin = () => {
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState({ title: '', desc: '', type: 'error' as 'error' | 'success' });
+
+  const loginMutation = useLogin();
+  
+  const handleLogin = async () => {
+    let loginParams = {};
+    
     if (loginMethod === 'phone') {
       if (!phone.number || !pin) {
-        setToastMessage({ title: 'Missing Info', desc: 'Please enter both phone and PIN.' });
+        setToastMessage({ title: 'Missing Info', desc: 'Please enter both phone and PIN.', type: 'error' });
         setToastVisible(true);
         return;
       }
+      loginParams = { phone: phone.number, pin };
     } else {
       if (!email || !password) {
-        setToastMessage({ title: 'Missing Info', desc: 'Please enter both email and password.' });
+        setToastMessage({ title: 'Missing Info', desc: 'Please enter both email and password.', type: 'error' });
         setToastVisible(true);
         return;
       }
+      loginParams = { email: email.toLowerCase(), password };
     }
     
-    setIsLoading(true);
-    // Simulate login delay
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await loginMutation.mutateAsync(loginParams);
+      setToastMessage({ title: 'Success', desc: 'Welcome back!', type: 'success' });
+      setToastVisible(true);
       router.replace('/(tabs)');
-    }, 2000);
+    } catch (error: any) {
+      const message = error.response?.data?.message || error.message || 'Check your credentials and try again.';
+      setToastMessage({ title: 'Login Failed', desc: message, type: 'error' });
+      setToastVisible(true);
+    }
   };
 
   const renderFlag = (country: any) => (
@@ -70,12 +84,12 @@ export default function LoginScreen() {
             style={[styles.logo, { tintColor: textColor }]} 
             resizeMode="contain"
           />
-          <ThemedText type="title" style={styles.title}>Rucks Plug</ThemedText>
-          <ThemedText style={styles.subtitle}>Secure. Transparent. Controlled.</ThemedText>
+          <ThemedText type="boldPrecision" style={styles.title}>Rucks Plug</ThemedText>
+          <ThemedText type="precision" style={styles.subtitle}>Secure. Transparent. Controlled.</ThemedText>
         </ThemedView>
 
-        <View style={[styles.card, { backgroundColor: cardBackground }]}>
-          <View style={styles.methodToggle}>
+        <View style={[styles.card, { backgroundColor: cardBackground, borderColor, borderWidth: 1 }]}>
+          <View style={[styles.methodToggle, { borderBottomColor: borderColor }]}>
             <TouchableOpacity 
               onPress={() => setLoginMethod('phone')}
               style={[
@@ -83,7 +97,7 @@ export default function LoginScreen() {
                 loginMethod === 'phone' && { borderBottomColor: textColor, borderBottomWidth: 2 }
               ]}
             >
-              <ThemedText style={[styles.toggleText, loginMethod === 'phone' && { color: textColor }]}>Phone</ThemedText>
+              <ThemedText type="precision" style={[styles.toggleText, loginMethod === 'phone' && { color: textColor }]}>Phone</ThemedText>
             </TouchableOpacity>
             <TouchableOpacity 
               onPress={() => setLoginMethod('email')}
@@ -92,7 +106,7 @@ export default function LoginScreen() {
                 loginMethod === 'email' && { borderBottomColor: textColor, borderBottomWidth: 2 }
               ]}
             >
-              <ThemedText style={[styles.toggleText, loginMethod === 'email' && { color: textColor }]}>Email</ThemedText>
+              <ThemedText type="precision" style={[styles.toggleText, loginMethod === 'email' && { color: textColor }]}>Email</ThemedText>
             </TouchableOpacity>
           </View>
 
@@ -102,17 +116,23 @@ export default function LoginScreen() {
                 label="Phone Number"
                 defaultCountryCode="UG"
                 allowedCountries={['UG', 'KE', 'TZ', 'RW', 'BI', 'SS', 'CD', 'SO']}
-                onChange={(val) => setPhone(val)}
-                containerStyle={styles.input}
-                inputStyle={{ color: textColor }}
-                labelStyle={{ color: textColor }}
+                onChange={(val) => setPhone(val.full)}
+                backgroundColor={inputBackground}
+                borderColor={borderColor}
+                textColor={textColor}
+                labelColor={textColor}
+                pickerBackgroundColor={background}
+                searchBackgroundColor={inputBackground}
+                searchBorderColor={borderColor}
+                inputStyle={{ fontFamily: 'Inter_400Regular' }}
+                labelStyle={{ color: textColor, fontFamily: 'Inter_400Regular' }}
                 renderFlag={renderFlag}
               />
-              <ThemedText style={styles.inputLabel}>PIN</ThemedText>
+              <ThemedText type="precision" style={styles.inputLabel}>PIN</ThemedText>
               <TextInput
-                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor }]}
+                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
                 placeholder="Enter 4-digit PIN"
-                placeholderTextColor={theme === 'light' ? '#999' : '#666'}
+                placeholderTextColor={mutedText}
                 keyboardType="numeric"
                 secureTextEntry
                 maxLength={4}
@@ -122,21 +142,21 @@ export default function LoginScreen() {
             </View>
           ) : (
             <View>
-              <ThemedText style={styles.inputLabel}>Email Address</ThemedText>
+              <ThemedText type="precision" style={styles.inputLabel}>Email Address</ThemedText>
               <TextInput
-                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor }]}
+                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
                 placeholder="e.g. name@example.com"
-                placeholderTextColor={theme === 'light' ? '#999' : '#666'}
+                placeholderTextColor={mutedText}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
               />
-              <ThemedText style={styles.inputLabel}>Password</ThemedText>
+              <ThemedText type="precision" style={styles.inputLabel}>Password</ThemedText>
               <TextInput
-                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor }]}
+                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
                 placeholder="Enter your password"
-                placeholderTextColor={theme === 'light' ? '#999' : '#666'}
+                placeholderTextColor={mutedText}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
@@ -147,22 +167,22 @@ export default function LoginScreen() {
           <Button
             title="Login"
             onPress={handleLogin}
-            isLoading={isLoading}
+            isLoading={loginMutation.isPending}
             fullWidth
             borderRadius={12}
             style={[{ marginTop: 24, backgroundColor: buttonBackground }] as any}
-            textStyle={{ color: buttonText }}
+            textStyle={{ color: buttonText, fontFamily: 'Inter_600SemiBold' }}
           />
           
           <TouchableOpacity style={styles.forgotPassword} onPress={() => {}}>
-            <ThemedText type="link">Forgot Credentials?</ThemedText>
+            <ThemedText type="link" style={{ fontFamily: 'Inter_400Regular' }}>Forgot Credentials?</ThemedText>
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
-          <ThemedText>Don't have an account? </ThemedText>
+          <ThemedText type="precision">Don't have an account? </ThemedText>
           <TouchableOpacity onPress={() => {}}>
-            <ThemedText type="link">Register here</ThemedText>
+            <ThemedText type="link" style={{ fontFamily: 'Inter_600SemiBold' }}>Register here</ThemedText>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -171,7 +191,7 @@ export default function LoginScreen() {
         visible={toastVisible}
         text={toastMessage.title}
         description={toastMessage.desc}
-        type="error"
+        type={toastMessage.type}
         onHide={() => setToastVisible(false)}
       />
     </KeyboardAvoidingView>
@@ -207,17 +227,13 @@ const styles = StyleSheet.create({
   card: {
     padding: 24,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#EEEEEE', // Subtle border for flat design
   },
   methodToggle: {
     flexDirection: 'row',
     marginBottom: 30,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
   },
   toggleBtn: {
     flex: 1,
@@ -242,7 +258,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     borderWidth: 1,
-    fontFamily: 'Bentham_400Regular',
   },
   forgotPassword: {
     alignItems: 'center',

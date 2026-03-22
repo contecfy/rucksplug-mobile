@@ -1,0 +1,42 @@
+[
+    {
+        "fullName": "Jane Doe",
+        "email": "jane.doe@example.com",
+        "phone": "0706111222",
+        "username": "janedoe",
+        "password": "password123",
+        "pin": "1234",
+        "nationalId": "CM900111222333",
+        "role": "client"
+    },
+    {
+        "fullName": "John Smith",
+        "email": "john.smith@example.com",
+        "phone": "0706333444",
+        "username": "johnsmith",
+        "password": "password123",
+        "pin": "4321",
+        "nationalId": "CM900444555666",
+        "role": "client"
+    },
+    {
+        "fullName": "Alice Nakasolya",
+        "email": "alice.n@example.com",
+        "phone": "0706555666",
+        "username": "alicen",
+        "password": "password123",
+        "pin": "8888",
+        "nationalId": "CF900777888999",
+        "role": "client"
+    },
+    {
+        "fullName": "Robert Mutebi",
+        "email": "robert.m@example.com",
+        "phone": "0706777888",
+        "username": "robertm",
+        "password": "password123",
+        "pin": "9999",
+        "nationalId": "CM900000111222",
+        "role": "client"
+    }
+]
