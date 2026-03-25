@@ -116,7 +116,7 @@ export default function LoginScreen() {
                 label="Phone Number"
                 defaultCountryCode="UG"
                 allowedCountries={['UG', 'KE', 'TZ', 'RW', 'BI', 'SS', 'CD', 'SO']}
-                onChange={(val) => setPhone(val.full)}
+                onChange={(val) => setPhone(val)}
                 backgroundColor={inputBackground}
                 borderColor={borderColor}
                 textColor={textColor}

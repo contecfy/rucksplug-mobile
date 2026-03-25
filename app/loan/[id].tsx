@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { StyleSheet, View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,12 +12,12 @@ import {
   User, 
   TrendingUp,
 } from 'lucide-react-native';
-import { Header, Button, Toast } from 'prizmux';
+import { Header, Button, Toast, Alert as PrizmuxAlert } from 'prizmux';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { loanApi, ILoan } from '@/api/loan';
+import { loanApi, ILoan, ISchedule } from '@/api/loan';
 
 const { width } = Dimensions.get('window');
 
@@ -42,104 +42,82 @@ export default function LoanDetailScreen() {
     type: 'info' as 'success' | 'error' | 'info' | 'warning' 
   });
 
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
+
   const showToast = (text: string, description: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     setToastConfig({ text, description, type });
     setToastVisible(true);
   };
 
-  const { data: loan, isLoading } = useQuery({
+  const { data: loan, isLoading: isLoadingLoan } = useQuery({
     queryKey: ['loan', id],
     queryFn: () => loanApi.getLoanById(id as string),
     enabled: !!id,
   });
 
-  const updateLoanMutation = useMutation({
-    mutationFn: (data: Partial<ILoan>) => loanApi.updateLoan(id as string, data),
+  const { data: schedules, isLoading: isLoadingSchedules } = useQuery({
+    queryKey: ['loan-schedule', id],
+    queryFn: () => loanApi.getScheduleByLoanId(id as string),
+    enabled: !!id,
+  });
+
+  const updateScheduleMutation = useMutation({
+    mutationFn: ({ scheduleId, status, paidAmount }: { scheduleId: string, status: string, paidAmount?: number }) => 
+        loanApi.updateScheduleStatus(scheduleId, status, paidAmount),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loan', id] });
-      queryClient.invalidateQueries({ queryKey: ['loans'] });
-      showToast('Success', 'Repayment status updated successfully', 'success');
+      queryClient.invalidateQueries({ queryKey: ['loan-schedule', id] });
+      showToast('Success', 'Repayment updated successfully', 'success');
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || error.message || 'Failed to update repayment status';
-      showToast('Update Failed', message, 'error');
+        const message = error.response?.data?.message || error.message || 'Failed to update repayment status';
+        showToast('Update Failed', message, 'error');
     },
   });
 
-  // Calculate repayment track
-  const { schedule, paymentPerPeriod, totalPayments } = useMemo(() => {
-    if (!loan) return { schedule: [], paymentPerPeriod: 0, totalPayments: 0 };
-    
-    const repayments = [];
-    const start = new Date(loan.startDate);
-    const today = new Date();
-    const frequency = loan.repaymentFrequency;
-    const durationCount = loan.durationDays;
-    
-    let interval = 1;
-    if (frequency === 'weekly') interval = 7;
-    if (frequency === 'biweekly') interval = 14;
-    
-    const count = Math.ceil(durationCount / interval);
-    const amountPerPeriod = loan.totalPayable / count;
-
-    // Use totalRepaid to determine which days are paid
-    const numberOfPaidPeriods = Math.round(loan.totalRepaid / amountPerPeriod);
-    
-    for (let i = 0; i < count; i++) {
-        const dueDate = new Date(start);
-        dueDate.setDate(start.getDate() + (i + 1) * interval);
-        
-        const isPast = dueDate < today;
-        const isToday = dueDate.toDateString() === today.toDateString();
-        const isPaid = i < numberOfPaidPeriods;
-        const isMissed = isPast && !isPaid && !isToday;
-        
-        repayments.push({
-            id: i,
-            date: dueDate,
-            isPaid,
-            isMissed,
-            isUpcoming: !isPast && !isToday,
-            isToday
-        });
+  const formatDate = useCallback((date: Date, type: 'MMM dd' | 'medium' | 'long') => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (type === 'MMM dd') {
+        return `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}`;
     }
-    return { schedule: repayments, paymentPerPeriod: amountPerPeriod, totalPayments: count };
-  }, [loan]);
+    if (type === 'medium') {
+        return `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}, ${date.getFullYear()}`;
+    }
+    return date.toDateString();
+  }, []);
 
-  const handleTogglePayment = (index: number, isPaid: boolean) => {
-    if (!loan) return;
+  const handleTogglePayment = (scheduleIndex: number, isPaid: boolean) => {
+    if (!loan || !schedules) return;
+
+    const scheduleItem = schedules[scheduleIndex];
+    if (!scheduleItem) return;
 
     const action = isPaid ? 'unpaid' : 'paid';
-    import('react-native').then(({ Alert }) => {
-        Alert.alert(
-            `Mark as ${action}`,
-            `Are you sure you want to mark this period as ${action}?`,
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { 
-                    text: 'Confirm', 
-                    onPress: () => {
-                        const newTotalPaidCount = isPaid ? index : index + 1;
-                        const newTotalRepaid = Math.min(loan.totalPayable, newTotalPaidCount * paymentPerPeriod);
-                        const newRemainingBalance = Math.max(0, loan.totalPayable - newTotalRepaid);
-
-                        updateLoanMutation.mutate({
-                            totalRepaid: newTotalRepaid,
-                            remainingBalance: newRemainingBalance
-                        });
-                    }
-                }
-            ]
-        );
+    setAlertConfig({
+        title: `Mark as ${action}`,
+        message: `Are you sure you want to mark this period as ${action}?`,
+        onConfirm: () => {
+            updateScheduleMutation.mutate({
+                scheduleId: scheduleItem._id,
+                status: isPaid ? 'pending' : 'paid',
+                paidAmount: isPaid ? 0 : scheduleItem.expectedAmount
+            });
+            setAlertVisible(false);
+        }
     });
+    setAlertVisible(true);
   };
 
   const missedCount = useMemo(() => 
-    schedule.filter(s => s.isMissed).length, 
-  [schedule]);
+    (schedules || []).filter(s => s.status === 'missed' || (s.status === 'pending' && new Date(s.dueDate) < new Date() && new Date(s.dueDate).toDateString() !== new Date().toDateString())).length, 
+  [schedules]);
 
-  if (isLoading || !loan) {
+  if (isLoadingLoan || !loan) {
     return (
       <ThemedView style={styles.center}>
         <ThemedText>Loading loan details...</ThemedText>
@@ -213,31 +191,37 @@ export default function LoanDetailScreen() {
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.trackContent}>
             <View style={styles.trackContainer}>
-                {schedule.map((item, index) => (
-                <View key={item.id} style={styles.trackItemContainer}>
-                    <TouchableOpacity 
-                        activeOpacity={0.7}
-                        onPress={() => handleTogglePayment(index, item.isPaid)}
-                        style={[
-                            styles.trackItem, 
-                            { 
-                                backgroundColor: item.isPaid ? successColor : item.isMissed ? dangerColor : item.isToday ? tintColor : cardBackground,
-                                borderColor: item.isToday ? tintColor : borderColor,
-                                borderWidth: 1
-                            }
-                        ]}
-                    >
-                    {item.isPaid ? <CheckCircle2 size={16} color="#FFF" /> : 
-                    item.isMissed ? <AlertCircle size={16} color="#FFF" /> : 
-                    item.isToday ? <Clock size={16} color="#FFF" /> :
-                    <View style={[styles.dot, { backgroundColor: textColor + '40' }]} />}
-                    </TouchableOpacity>
-                    <ThemedText style={styles.trackDate}>{formatDate(item.date, 'MMM dd')}</ThemedText>
-                    {index < schedule.length - 1 && (
-                    <View style={[styles.connector, { backgroundColor: borderColor }]} />
-                    )}
-                </View>
-                ))}
+                {(schedules || []).map((item, index) => {
+                    const isPaid = item.status === 'paid';
+                    const isMissed = item.status === 'missed' || (item.status === 'pending' && new Date(item.dueDate) < new Date() && new Date(item.dueDate).toDateString() !== new Date().toDateString());
+                    const isToday = new Date(item.dueDate).toDateString() === new Date().toDateString();
+
+                    return (
+                        <View key={item._id} style={styles.trackItemContainer}>
+                            <TouchableOpacity 
+                                activeOpacity={0.7}
+                                onPress={() => handleTogglePayment(index, isPaid)}
+                                style={[
+                                    styles.trackItem, 
+                                    { 
+                                        backgroundColor: isPaid ? successColor : isMissed ? dangerColor : isToday ? tintColor : cardBackground,
+                                        borderColor: isToday ? tintColor : borderColor,
+                                        borderWidth: 1
+                                    }
+                                ]}
+                            >
+                            {isPaid ? <CheckCircle2 size={16} color="#FFF" /> : 
+                            isMissed ? <AlertCircle size={16} color="#FFF" /> : 
+                            isToday ? <Clock size={16} color="#FFF" /> :
+                            <View style={[styles.dot, { backgroundColor: textColor + '40' }]} />}
+                            </TouchableOpacity>
+                            <ThemedText style={styles.trackDate}>{formatDate(new Date(item.dueDate), 'MMM dd')}</ThemedText>
+                            {index < schedules!.length - 1 && (
+                            <View style={[styles.connector, { backgroundColor: borderColor }]} />
+                            )}
+                        </View>
+                    );
+                })}
             </View>
           </ScrollView>
           <ThemedText style={styles.trackHint}>Tap any date to toggle payment status</ThemedText>
@@ -246,19 +230,19 @@ export default function LoanDetailScreen() {
         {/* Action Button */}
         <View style={styles.actionContainer}>
             <Button 
-                title={updateLoanMutation.isPending ? "Updating..." : "Mark Current as Paid"}
+                title={updateScheduleMutation.isPending ? "Updating..." : "Mark Current as Paid"}
                 onPress={() => {
-                    const nextIndex = schedule.findIndex(s => !s.isPaid);
+                    const nextIndex = (schedules || []).findIndex(s => s.status !== 'paid');
                     if (nextIndex !== -1) handleTogglePayment(nextIndex, false);
                 }}
                 fullWidth
-                disabled={updateLoanMutation.isPending}
+                disabled={updateScheduleMutation.isPending}
                 borderRadius={16}
                 style={{ backgroundColor: successColor, height: 56 } as any}
                 textStyle={{ fontSize: 18, fontFamily: 'Inter_700Bold', color: '#FFF' }}
             />
             <ThemedText style={styles.actionSubtext}>
-               Next payment due: {formatDate(schedule.find(s => !s.isPaid)?.date || new Date(), 'long')}
+               Next payment due: {formatDate(new Date((schedules || []).find(s => s.status !== 'paid')?.dueDate || new Date()), 'long')}
             </ThemedText>
         </View>
 
@@ -298,20 +282,39 @@ export default function LoanDetailScreen() {
         dismiss="manual"
         duration={5000}
       />
+
+      <PrizmuxAlert
+        visible={alertVisible}
+        onClose={() => setAlertVisible(false)}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        backgroundColor={cardBackground}
+        titleColor={textColor}
+        messageColor={textColor}
+        overlayColor="rgba(0,0,0,0.7)"
+      >
+        <View style={styles.alertActions}>
+            <Button 
+                title="Cancel" 
+                variant="outline" 
+                onPress={() => setAlertVisible(false)} 
+                borderColor={borderColor}
+                textColor={textColor}
+                borderRadius={24}
+                style={{ flex: 1, height: 48 } as any}
+            />
+            <Button 
+                title="Confirm" 
+                onPress={alertConfig.onConfirm}
+                backgroundColor={tintColor}
+                textColor={background}
+                borderRadius={24}
+                style={{ flex: 1, height: 48 } as any}
+            />
+        </View>
+      </PrizmuxAlert>
     </ThemedView>
   );
-}
-
-// Helper date formatter
-function formatDate(date: Date, type: 'MMM dd' | 'medium' | 'long') {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    if (type === 'MMM dd') {
-        return `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}`;
-    }
-    if (type === 'medium') {
-        return `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}, ${date.getFullYear()}`;
-    }
-    return date.toDateString();
 }
 
 const styles = StyleSheet.create({
@@ -476,5 +479,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     opacity: 0.7,
+  },
+  alertActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+    width: '100%',
   },
 });
