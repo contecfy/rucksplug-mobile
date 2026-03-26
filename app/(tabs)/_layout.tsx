@@ -1,14 +1,19 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { LayoutDashboard, HandCoins, TrendingUp, User } from 'lucide-react-native';
+import { Tabs } from "expo-router";
+import {
+  HandCoins,
+  LayoutDashboard,
+  TrendingUp,
+  User,
+} from "lucide-react-native";
+import React from "react";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { HapticTab } from "@/components/haptic-tab";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const theme = colorScheme ?? 'light';
+  const theme = colorScheme ?? "light";
   const themeColors = Colors[theme];
 
   return (
@@ -21,7 +26,7 @@ export default function TabLayout() {
           backgroundColor: themeColors.background,
         },
         headerTitleStyle: {
-          fontFamily: 'Inter_700Bold',
+          fontFamily: "Inter_700Bold",
           color: themeColors.text,
         },
         tabBarStyle: {
@@ -30,35 +35,43 @@ export default function TabLayout() {
         },
         tabBarButton: HapticTab,
         tabBarLabelStyle: {
-          fontFamily: 'Inter_400Regular',
+          fontFamily: "Inter_400Regular",
           fontSize: 12,
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} />,
+          headerShown: false,
+          title: "Dashboard",
+          tabBarIcon: ({ color, size }) => (
+            <LayoutDashboard size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="loans"
         options={{
-          title: 'Loans',
-          tabBarIcon: ({ color, size }) => <HandCoins size={size} color={color} />,
+          title: "Loans",
+          tabBarIcon: ({ color, size }) => (
+            <HandCoins size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="invest"
         options={{
-          title: 'Invest',
-          tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} />,
+          title: "Invest",
+          tabBarIcon: ({ color, size }) => (
+            <TrendingUp size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: "Profile",
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />

@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Button } from 'prizmux';
-import { LogOut, User as UserIcon, Mail, Phone, Shield } from 'lucide-react-native';
+import { LogOut, User as UserIcon, Mail, Phone, Shield, Settings, ChevronRight } from 'lucide-react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuthStore } from '@/store/auth-store';
@@ -73,6 +73,21 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      <View style={styles.settingsSection}>
+        <TouchableOpacity 
+          style={[styles.settingsItem, { backgroundColor: cardBackground }]} 
+          onPress={() => router.push('/settings')}
+        >
+          <View style={styles.settingsLeft}>
+            <View style={[styles.settingsIconContainer, { backgroundColor: tintColor + '20' }]}>
+              <Settings size={20} color={tintColor} />
+            </View>
+            <ThemedText type="precision" style={styles.settingsLabel}>Settings</ThemedText>
+          </View>
+          <ChevronRight size={20} color={textColor} opacity={0.3} />
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity 
         style={[styles.logoutAction, { borderColor: dangerColor }]} 
         onPress={handleLogout}
@@ -136,13 +151,39 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginBottom: 2,
   },
+  settingsSection: {
+    marginBottom: 24,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: 16,
+  },
+  settingsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  settingsIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  settingsLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   logoutAction: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#FF4444',
   },

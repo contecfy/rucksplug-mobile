@@ -82,6 +82,7 @@ export default function LoanDetailScreen() {
 
   const formatDate = useCallback((date: Date, type: 'MMM dd' | 'medium' | 'long') => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (isNaN(date.getTime())) return 'N/A';
     if (type === 'MMM dd') {
         return `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}`;
     }
@@ -89,6 +90,18 @@ export default function LoanDetailScreen() {
         return `${months[date.getMonth()]} ${date.getDate().toString().padStart(2, '0')}, ${date.getFullYear()}`;
     }
     return date.toDateString();
+  }, []);
+
+  const formatDuration = useCallback((days: number, frequency: string) => {
+    if (frequency === 'daily') return `${days} Days`;
+    if (frequency === 'weekly') return `${Math.ceil(days / 7)} Weeks`;
+    if (frequency === 'biweekly') return `${Math.ceil(days / 14)} Bi-weeks`;
+    return `${days} Days`;
+  }, []);
+
+  const getRepaymentLabel = useCallback((index: number, frequency: string) => {
+    const unit = frequency === 'daily' ? 'Day' : frequency === 'weekly' ? 'Week' : 'Period';
+    return `${unit} ${index + 1}`;
   }, []);
 
   const handleTogglePayment = (scheduleIndex: number, isPaid: boolean) => {
@@ -190,39 +203,46 @@ export default function LoanDetailScreen() {
           </View>
           
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.trackContent}>
-            <View style={styles.trackContainer}>
-                {(schedules || []).map((item, index) => {
-                    const isPaid = item.status === 'paid';
-                    const isMissed = item.status === 'missed' || (item.status === 'pending' && new Date(item.dueDate) < new Date() && new Date(item.dueDate).toDateString() !== new Date().toDateString());
-                    const isToday = new Date(item.dueDate).toDateString() === new Date().toDateString();
+            {isLoadingSchedules ? (
+                <View style={styles.loadingTrack}>
+                    <ThemedText style={{ opacity: 0.5 }}>Loading schedule...</ThemedText>
+                </View>
+            ) : (
+                <View style={styles.trackContainer}>
+                    {(schedules || []).map((item, index) => {
+                        const isPaid = item.status === 'paid';
+                        const isMissed = item.status === 'missed' || (item.status === 'pending' && new Date(item.dueDate) < new Date() && new Date(item.dueDate).toDateString() !== new Date().toDateString());
+                        const isToday = new Date(item.dueDate).toDateString() === new Date().toDateString();
 
-                    return (
-                        <View key={item._id} style={styles.trackItemContainer}>
-                            <TouchableOpacity 
-                                activeOpacity={0.7}
-                                onPress={() => handleTogglePayment(index, isPaid)}
-                                style={[
-                                    styles.trackItem, 
-                                    { 
-                                        backgroundColor: isPaid ? successColor : isMissed ? dangerColor : isToday ? tintColor : cardBackground,
-                                        borderColor: isToday ? tintColor : borderColor,
-                                        borderWidth: 1
-                                    }
-                                ]}
-                            >
-                            {isPaid ? <CheckCircle2 size={16} color="#FFF" /> : 
-                            isMissed ? <AlertCircle size={16} color="#FFF" /> : 
-                            isToday ? <Clock size={16} color="#FFF" /> :
-                            <View style={[styles.dot, { backgroundColor: textColor + '40' }]} />}
-                            </TouchableOpacity>
-                            <ThemedText style={styles.trackDate}>{formatDate(new Date(item.dueDate), 'MMM dd')}</ThemedText>
-                            {index < schedules!.length - 1 && (
-                            <View style={[styles.connector, { backgroundColor: borderColor }]} />
-                            )}
-                        </View>
-                    );
-                })}
-            </View>
+                        return (
+                            <View key={item._id} style={styles.trackItemContainer}>
+                                <ThemedText style={styles.trackIndexLabel}>{getRepaymentLabel(index, loan.repaymentFrequency)}</ThemedText>
+                                <TouchableOpacity 
+                                    activeOpacity={0.7}
+                                    onPress={() => handleTogglePayment(index, isPaid)}
+                                    style={[
+                                        styles.trackItem, 
+                                        { 
+                                            backgroundColor: isPaid ? successColor : isMissed ? dangerColor : isToday ? tintColor : cardBackground,
+                                            borderColor: isToday ? tintColor : borderColor,
+                                            borderWidth: 1
+                                        }
+                                    ]}
+                                >
+                                {isPaid ? <CheckCircle2 size={16} color="#FFF" /> : 
+                                isMissed ? <AlertCircle size={16} color="#FFF" /> : 
+                                isToday ? <Clock size={16} color={background} /> :
+                                <View style={[styles.dot, { backgroundColor: textColor + '40' }]} />}
+                                </TouchableOpacity>
+                                <ThemedText style={styles.trackDate}>{formatDate(new Date(item.dueDate), 'MMM dd')}</ThemedText>
+                                {index < schedules!.length - 1 && (
+                                <View style={[styles.connector, { backgroundColor: borderColor }]} />
+                                )}
+                            </View>
+                        );
+                    })}
+                </View>
+            )}
           </ScrollView>
           <ThemedText style={styles.trackHint}>Tap any date to toggle payment status</ThemedText>
         </View>
@@ -260,8 +280,15 @@ export default function LoanDetailScreen() {
             </View>
             <View style={styles.detailRow}>
                 <TrendingUp size={18} color={textColor} opacity={0.6} />
-                <ThemedText style={styles.detailLabel}>Frequency</ThemedText>
-                <ThemedText type="boldPrecision" style={{ textTransform: 'capitalize' }}>{loan.repaymentFrequency}</ThemedText>
+                <ThemedText style={styles.detailLabel}>Frequency & Duration</ThemedText>
+                <ThemedText type="boldPrecision" style={{ textTransform: 'capitalize' }}>
+                    {loan.repaymentFrequency} • {formatDuration(loan.durationDays, loan.repaymentFrequency)}
+                </ThemedText>
+            </View>
+            <View style={styles.detailRow}>
+                <CalendarIcon size={18} color={textColor} opacity={0.6} />
+                <ThemedText style={styles.detailLabel}>Due Date</ThemedText>
+                <ThemedText type="boldPrecision">{formatDate(new Date(loan.dueDate), 'medium')}</ThemedText>
             </View>
             <View style={styles.detailRow}>
                 <Banknote size={18} color={textColor} opacity={0.6} />
@@ -448,12 +475,23 @@ const styles = StyleSheet.create({
   },
   connector: {
     position: 'absolute',
-    top: 22,
+    top: 36,
     left: 44,
     width: 36,
     height: 2,
     opacity: 0.2,
     zIndex: 1,
+  },
+  trackIndexLabel: {
+    fontSize: 10,
+    opacity: 0.4,
+    marginBottom: 4,
+    fontWeight: 'bold',
+  },
+  loadingTrack: {
+    padding: 20,
+    alignItems: 'center',
+    width: width - 40,
   },
   actionContainer: {
     marginBottom: 32,

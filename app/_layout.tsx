@@ -14,6 +14,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/store/auth-store';
+import { useThemeStore } from '@/store/theme-store';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -34,23 +35,27 @@ export default function RootLayout() {
   });
 
   const initializeAuth = useAuthStore((state) => state.initialize);
-  const [isAuthReady, setIsAuthReady] = useState(false);
+  const initializeTheme = useThemeStore((state) => state.initialize);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     async function init() {
-      await initializeAuth();
-      setIsAuthReady(true);
+      await Promise.all([
+        initializeAuth(),
+        initializeTheme()
+      ]);
+      setIsReady(true);
     }
     init();
   }, []);
 
   useEffect(() => {
-    if ((loaded || error) && isAuthReady) {
+    if ((loaded || error) && isReady) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, error, isAuthReady]);
+  }, [loaded, error, isReady]);
 
-  if ((!loaded && !error) || !isAuthReady) {
+  if ((!loaded && !error) || !isReady) {
     return null;
   }
 
@@ -72,6 +77,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="new-loan" options={{ headerShown: false }} />
           <Stack.Screen name="loan/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

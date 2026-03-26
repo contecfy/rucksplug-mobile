@@ -6,6 +6,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useAuthStore } from "@/store/auth-store";
 
 const { width } = Dimensions.get("window");
 
@@ -31,6 +32,7 @@ export default function Onboarding() {
     const router = useRouter();
     const colorScheme = useColorScheme();
     const theme = colorScheme ?? 'light';
+    const { setHasSeenOnboarding } = useAuthStore();
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const cardBackground = useThemeColor({}, 'card');
@@ -40,12 +42,18 @@ export default function Onboarding() {
     const tintColor = useThemeColor({}, 'tint');
     const background = useThemeColor({}, 'background');
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (currentSlide < SLIDES.length - 1) {
             setCurrentSlide(currentSlide + 1);
         } else {
+            await setHasSeenOnboarding(true);
             router.push("/(auth)/login");
         }
+    };
+
+    const handleSkip = async () => {
+        await setHasSeenOnboarding(true);
+        router.push("/(auth)/login");
     };
 
     const slide = SLIDES[currentSlide];
@@ -89,7 +97,7 @@ export default function Onboarding() {
                     <Button 
                         title="Skip" 
                         variant="outline" 
-                        onPress={() => router.push("/(auth)/login")}
+                        onPress={handleSkip}
                         fullWidth
                         style={[{ marginTop: 12, borderWidth: 1 }, { borderColor: textColor }] as any}
                         textStyle={{ color: textColor }}
