@@ -12,12 +12,19 @@ const apiClient = axios.create({
   },
 });
 
-// Interceptor to add auth token to requests
+// Interceptor to add auth token and active company ID to requests
 apiClient.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync('auth_token');
+  const activeCompanyId = await SecureStore.getItemAsync('active_company_id');
+
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token.replace(/^["']|["']$/g, "").trim()}`;
   }
+
+  if (activeCompanyId) {
+    config.headers['x-company-id'] = activeCompanyId;
+  }
+
   return config;
 });
 
