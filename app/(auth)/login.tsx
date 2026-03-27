@@ -3,6 +3,8 @@ import { StyleSheet, View, Image, TouchableOpacity, ScrollView, KeyboardAvoiding
 import { useRouter } from 'expo-router';
 import { PhoneInput, Button, Toast } from 'prizmux';
 import CountryFlag from 'react-native-country-flag';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
@@ -73,128 +75,132 @@ export default function LoginScreen() {
   );
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <ThemedView style={styles.header}>
-          <Image 
-            source={require('@/assets/images/icon.png')} 
-            style={[styles.logo, { tintColor: textColor }]} 
-            resizeMode="contain"
-          />
-          <ThemedText type="boldPrecision" style={styles.title}>Rucks Plug</ThemedText>
-          <ThemedText type="precision" style={styles.subtitle}>Secure. Transparent. Controlled.</ThemedText>
-        </ThemedView>
-
-        <View style={[styles.card, { backgroundColor: cardBackground, borderColor, borderWidth: 1 }]}>
-          <View style={[styles.methodToggle, { borderBottomColor: borderColor }]}>
-            <TouchableOpacity 
-              onPress={() => setLoginMethod('phone')}
-              style={[
-                styles.toggleBtn, 
-                loginMethod === 'phone' && { borderBottomColor: textColor, borderBottomWidth: 2 }
-              ]}
-            >
-              <ThemedText type="precision" style={[styles.toggleText, loginMethod === 'phone' && { color: textColor }]}>Phone</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={() => setLoginMethod('email')}
-              style={[
-                styles.toggleBtn, 
-                loginMethod === 'email' && { borderBottomColor: textColor, borderBottomWidth: 2 }
-              ]}
-            >
-              <ThemedText type="precision" style={[styles.toggleText, loginMethod === 'email' && { color: textColor }]}>Email</ThemedText>
-            </TouchableOpacity>
-          </View>
-
-          {loginMethod === 'phone' ? (
-            <View>
-              <PhoneInput
-                label="Phone Number"
-                defaultCountryCode="UG"
-                allowedCountries={['UG', 'KE', 'TZ', 'RW', 'BI', 'SS', 'CD', 'SO']}
-                onChange={(val) => setPhone(val)}
-                backgroundColor={inputBackground}
-                borderColor={borderColor}
-                textColor={textColor}
-                labelColor={textColor}
-                pickerBackgroundColor={background}
-                searchBackgroundColor={inputBackground}
-                searchBorderColor={borderColor}
-                inputStyle={{ fontFamily: 'Inter_400Regular' }}
-                labelStyle={{ color: textColor, fontFamily: 'Inter_400Regular' }}
-                renderFlag={renderFlag}
+    <ThemedView style={{ flex: 1, backgroundColor: background }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.container}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <ThemedView style={styles.header}>
+              <Image 
+                source={require('@/assets/images/icon.png')} 
+                style={[styles.logo, { tintColor: textColor }]} 
+                resizeMode="contain"
               />
-              <ThemedText type="precision" style={styles.inputLabel}>PIN</ThemedText>
-              <TextInput
-                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
-                placeholder="Enter 4-digit PIN"
-                placeholderTextColor={mutedText}
-                keyboardType="numeric"
-                secureTextEntry
-                maxLength={4}
-                value={pin}
-                onChangeText={setPin}
+              <ThemedText type="boldPrecision" style={styles.title}>Rucks Plug</ThemedText>
+              <ThemedText type="precision" style={styles.subtitle}>Secure. Transparent. Controlled.</ThemedText>
+            </ThemedView>
+
+            <View style={[styles.card, { backgroundColor: cardBackground, borderColor, borderWidth: 1 }]}>
+              <View style={[styles.methodToggle, { borderBottomColor: borderColor }]}>
+                <TouchableOpacity 
+                  onPress={() => setLoginMethod('phone')}
+                  style={[
+                    styles.toggleBtn, 
+                    loginMethod === 'phone' && { borderBottomColor: textColor, borderBottomWidth: 2 }
+                  ]}
+                >
+                  <ThemedText type="precision" style={[styles.toggleText, loginMethod === 'phone' && { color: textColor }]}>Phone</ThemedText>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  onPress={() => setLoginMethod('email')}
+                  style={[
+                    styles.toggleBtn, 
+                    loginMethod === 'email' && { borderBottomColor: textColor, borderBottomWidth: 2 }
+                  ]}
+                >
+                  <ThemedText type="precision" style={[styles.toggleText, loginMethod === 'email' && { color: textColor }]}>Email</ThemedText>
+                </TouchableOpacity>
+              </View>
+
+              {loginMethod === 'phone' ? (
+                <View>
+                  <PhoneInput
+                    label="Phone Number"
+                    defaultCountryCode="UG"
+                    allowedCountries={['UG', 'KE', 'TZ', 'RW', 'BI', 'SS', 'CD', 'SO']}
+                    onChange={(val) => setPhone(val)}
+                    backgroundColor={inputBackground}
+                    borderColor={borderColor}
+                    textColor={textColor}
+                    labelColor={textColor}
+                    pickerBackgroundColor={background}
+                    searchBackgroundColor={inputBackground}
+                    searchBorderColor={borderColor}
+                    inputStyle={{ fontFamily: 'Inter_400Regular' }}
+                    labelStyle={{ color: textColor, fontFamily: 'Inter_400Regular' }}
+                    renderFlag={renderFlag}
+                  />
+                  <ThemedText type="precision" style={styles.inputLabel}>PIN</ThemedText>
+                  <TextInput
+                    style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
+                    placeholder="Enter 4-digit PIN"
+                    placeholderTextColor={mutedText}
+                    keyboardType="numeric"
+                    secureTextEntry
+                    maxLength={4}
+                    value={pin}
+                    onChangeText={setPin}
+                  />
+                </View>
+              ) : (
+                <View>
+                  <ThemedText type="precision" style={styles.inputLabel}>Email Address</ThemedText>
+                  <TextInput
+                    style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
+                    placeholder="e.g. name@example.com"
+                    placeholderTextColor={mutedText}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                  <ThemedText type="precision" style={styles.inputLabel}>Password</ThemedText>
+                  <TextInput
+                    style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
+                    placeholder="Enter your password"
+                    placeholderTextColor={mutedText}
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                </View>
+              )}
+              
+              <Button
+                title="Login"
+                onPress={handleLogin}
+                isLoading={loginMutation.isPending}
+                fullWidth
+                borderRadius={12}
+                style={[{ marginTop: 24, backgroundColor: buttonBackground }] as any}
+                textStyle={{ color: buttonText, fontFamily: 'Inter_600SemiBold' }}
               />
+              
+              <TouchableOpacity style={styles.forgotPassword} onPress={() => {}}>
+                <ThemedText type="link" style={{ fontFamily: 'Inter_400Regular' }}>Forgot Credentials?</ThemedText>
+              </TouchableOpacity>
             </View>
-          ) : (
-            <View>
-              <ThemedText type="precision" style={styles.inputLabel}>Email Address</ThemedText>
-              <TextInput
-                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
-                placeholder="e.g. name@example.com"
-                placeholderTextColor={mutedText}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-              />
-              <ThemedText type="precision" style={styles.inputLabel}>Password</ThemedText>
-              <TextInput
-                style={[styles.textInput, { backgroundColor: inputBackground, color: textColor, borderColor, fontFamily: 'Inter_400Regular' }]}
-                placeholder="Enter your password"
-                placeholderTextColor={mutedText}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
+
+            <View style={styles.footer}>
+              <ThemedText type="precision">Don't have an account? </ThemedText>
+              <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+                <ThemedText type="link" style={{ fontFamily: 'Inter_600SemiBold' }}>Register here</ThemedText>
+              </TouchableOpacity>
             </View>
-          )}
-          
-          <Button
-            title="Login"
-            onPress={handleLogin}
-            isLoading={loginMutation.isPending}
-            fullWidth
-            borderRadius={12}
-            style={[{ marginTop: 24, backgroundColor: buttonBackground }] as any}
-            textStyle={{ color: buttonText, fontFamily: 'Inter_600SemiBold' }}
+          </ScrollView>
+
+          <Toast
+            visible={toastVisible}
+            text={toastMessage.title}
+            description={toastMessage.desc}
+            type={toastMessage.type}
+            onHide={() => setToastVisible(false)}
           />
-          
-          <TouchableOpacity style={styles.forgotPassword} onPress={() => {}}>
-            <ThemedText type="link" style={{ fontFamily: 'Inter_400Regular' }}>Forgot Credentials?</ThemedText>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.footer}>
-          <ThemedText type="precision">Don't have an account? </ThemedText>
-          <TouchableOpacity onPress={() => {}}>
-            <ThemedText type="link" style={{ fontFamily: 'Inter_600SemiBold' }}>Register here</ThemedText>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      <Toast
-        visible={toastVisible}
-        text={toastMessage.title}
-        description={toastMessage.desc}
-        type={toastMessage.type}
-        onHide={() => setToastVisible(false)}
-      />
-    </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </ThemedView>
   );
 }
 
@@ -228,7 +234,7 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#EEEEEE', // Subtle border for flat design
+    borderColor: '#EEEEEE',
   },
   methodToggle: {
     flexDirection: 'row',
@@ -243,9 +249,6 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 16,
     opacity: 0.5,
-  },
-  input: {
-    marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,

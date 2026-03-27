@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'investor' | 'client';
+export type UserRole = 'admin' | 'investor' | 'client' | 'loan_officer' | 'manager' | 'accountant' | 'collector' | 'compliance' | 'super_admin';
 
 export interface User {
   _id: string;
@@ -7,6 +7,7 @@ export interface User {
   email: string;
   phone: string;
   role: UserRole;
+  companies: string[];
   nationalId: string;
   address?: string;
   dateOfBirth?: string;

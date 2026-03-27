@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, TextInput, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Banknote, Calendar, AlignLeft, RefreshCw } from 'lucide-react-native';
 import { Button } from 'prizmux';
@@ -39,10 +39,18 @@ export default function NewLoanScreen() {
   const [clientModalVisible, setClientModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { clientId } = useLocalSearchParams();
   const { data: users, isLoading: loadingUsers } = useQuery({
     queryKey: ['users'],
     queryFn: userApi.getUsers,
   });
+
+  React.useEffect(() => {
+    if (clientId && users) {
+      const client = users.find(u => u._id === clientId);
+      if (client) setSelectedClient(client);
+    }
+  }, [clientId, users]);
 
   const filteredUsers = users?.filter(u =>
     u.role === 'client' &&

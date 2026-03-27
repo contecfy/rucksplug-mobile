@@ -1,20 +1,23 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from '@expo-google-fonts/inter';
 import {
   Inter_400Regular,
   Inter_600SemiBold,
-  Inter_700Bold
-} from '@expo-google-fonts/inter';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import 'react-native-reanimated';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+  Inter_700Bold, useFonts
+} from "@expo-google-fonts/inter";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
+import "react-native-reanimated";
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuthStore } from '@/store/auth-store';
-import { useThemeStore } from '@/store/theme-store';
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useAuthStore } from "@/store/auth-store";
+import { useThemeStore } from "@/store/theme-store";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -23,7 +26,7 @@ const queryClient = new QueryClient();
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: 'index',
+  initialRouteName: "index",
 };
 
 export default function RootLayout() {
@@ -31,7 +34,7 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
-    Inter_700Bold
+    Inter_700Bold,
   });
 
   const initializeAuth = useAuthStore((state) => state.initialize);
@@ -40,10 +43,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     async function init() {
-      await Promise.all([
-        initializeAuth(),
-        initializeTheme()
-      ]);
+      await Promise.all([initializeAuth(), initializeTheme()]);
       setIsReady(true);
     }
     init();
@@ -61,19 +61,19 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack
           screenOptions={{
             headerTitleStyle: {
-              fontFamily: 'Inter_700Bold',
+              fontFamily: "Inter_700Bold",
             },
             headerBackTitleStyle: {
-              fontFamily: 'Inter_400Regular',
+              fontFamily: "Inter_400Regular",
             },
-          }}>
+          }}
+        >
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)/onboarding" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="new-loan" options={{ headerShown: false }} />
           <Stack.Screen name="loan/[id]" options={{ headerShown: false }} />
