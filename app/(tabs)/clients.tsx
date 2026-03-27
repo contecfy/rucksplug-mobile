@@ -1,43 +1,64 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserPlus, Search, ShieldAlert, UserCheck, Plus, Check } from 'lucide-react-native';
-import { Button, BottomSheet, Toast } from 'prizmux';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import {
+  Plus,
+  Search,
+  ShieldAlert,
+  UserPlus
+} from "lucide-react-native";
+import { BottomSheet, Button, Toast } from "prizmux";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { userApi, IUser } from '@/api/user';
+import { IUser, userApi } from "@/api/user";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function ClientsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const colorScheme = useColorScheme();
-  const theme = colorScheme ?? 'light';
+  const theme = colorScheme ?? "light";
 
-  const textColor = useThemeColor({}, 'text');
-  const cardBackground = useThemeColor({}, 'card');
-  const borderColor = useThemeColor({}, 'borderColor');
-  const tintColor = useThemeColor({}, 'tint');
-  const background = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, "text");
+  const cardBackground = useThemeColor({}, "card");
+  const borderColor = useThemeColor({}, "borderColor");
+  const tintColor = useThemeColor({}, "tint");
+  const background = useThemeColor({}, "background");
 
   const [discoveryModalVisible, setDiscoveryModalVisible] = useState(false);
-  const [nationalIdSearch, setNationalIdSearch] = useState('');
+  const [nationalIdSearch, setNationalIdSearch] = useState("");
   const [foundUser, setFoundUser] = useState<IUser | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
   const [toastVisible, setToastVisible] = useState(false);
-  const [toastMessage, setToastMessage] = useState({ title: '', desc: '', type: 'error' as 'error' | 'success' });
+  const [toastMessage, setToastMessage] = useState({
+    title: "",
+    desc: "",
+    type: "error" as "error" | "success",
+  });
 
   // 1. Fetch Company Clients
-  const { data: users, isLoading, refetch } = useQuery({
-    queryKey: ['users'],
+  const {
+    data: users,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["users"],
     queryFn: userApi.getUsers,
   });
 
-  const clients = users?.filter(u => u.role === 'client') || [];
+  const clients = users?.filter((u) => u.role === "client") || [];
 
   // 2. Search by National ID
   const handleDiscoverySearch = async () => {
@@ -49,11 +70,19 @@ export default function ClientsScreen() {
       if (user) {
         setFoundUser(user);
       } else {
-        setToastMessage({ title: 'Not Found', desc: 'No user exists with this National ID.', type: 'error' });
+        setToastMessage({
+          title: "Not Found",
+          desc: "No user exists with this National ID.",
+          type: "error",
+        });
         setToastVisible(true);
       }
     } catch (e) {
-      setToastMessage({ title: 'Error', desc: 'Search failed. Please try again.', type: 'error' });
+      setToastMessage({
+        title: "Error",
+        desc: "Search failed. Please try again.",
+        type: "error",
+      });
       setToastVisible(true);
     } finally {
       setIsSearching(false);
@@ -64,32 +93,49 @@ export default function ClientsScreen() {
   const linkMutation = useMutation({
     mutationFn: userApi.linkToCompany,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setToastMessage({ title: 'Linked!', desc: 'User added to your company.', type: 'success' });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      setToastMessage({
+        title: "Linked!",
+        desc: "User added to your company.",
+        type: "success",
+      });
       setToastVisible(true);
       setDiscoveryModalVisible(false);
       setFoundUser(null);
-      setNationalIdSearch('');
+      setNationalIdSearch("");
     },
     onError: (err: any) => {
-      setToastMessage({ title: 'Link Failed', desc: err.response?.data?.message || 'Could not link user.', type: 'error' });
+      setToastMessage({
+        title: "Link Failed",
+        desc: err.response?.data?.message || "Could not link user.",
+        type: "error",
+      });
       setToastVisible(true);
-    }
+    },
   });
 
   const renderClientItem = ({ item }: { item: IUser }) => (
-    <TouchableOpacity 
-      style={[styles.clientCard, { backgroundColor: cardBackground, borderColor }]}
+    <TouchableOpacity
+      style={[
+        styles.clientCard,
+        { backgroundColor: cardBackground, borderColor },
+      ]}
       onPress={() => {}}
     >
       <View style={styles.clientAvatar}>
-        <ThemedText style={styles.avatarText}>{item.fullName.charAt(0)}</ThemedText>
+        <ThemedText style={styles.avatarText}>
+          {item.fullName.charAt(0)}
+        </ThemedText>
       </View>
       <View style={styles.clientInfo}>
-        <ThemedText type="boldPrecision" style={styles.clientName}>{item.fullName}</ThemedText>
-        <ThemedText type="precision" style={styles.clientDetails}>{item.phone} • {item.nationalId}</ThemedText>
+        <ThemedText type="boldPrecision" style={styles.clientName}>
+          {item.fullName}
+        </ThemedText>
+        <ThemedText type="precision" style={styles.clientDetails}>
+          {item.phone} • {item.nationalId}
+        </ThemedText>
       </View>
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => router.push(`/loan/new?clientId=${item._id}`)}
         style={[styles.listItemAction, { borderColor: tintColor }]}
       >
@@ -101,22 +147,26 @@ export default function ClientsScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={styles.header}>
-        <ThemedText type="boldPrecision" style={styles.title}>Company Clients</ThemedText>
-        <ThemedText type="precision" style={styles.subtitle}>Manage existing clients or discovery new ones</ThemedText>
+        <ThemedText type="boldPrecision" style={styles.title}>
+          Company Clients
+        </ThemedText>
+        <ThemedText type="precision" style={styles.subtitle}>
+          Manage existing clients or discovery new ones
+        </ThemedText>
       </View>
 
       <View style={styles.actionRow}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[styles.mainAction, { backgroundColor: tintColor }]}
           onPress={() => setDiscoveryModalVisible(true)}
         >
-          <Search size={24} color="#FFF" />
-          <ThemedText style={styles.actionText}>Discover User</ThemedText>
+          <Search size={24} color={background} />
+          <ThemedText style={[styles.actionText, { color: background }]}>Discover User</ThemedText>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={[styles.secondaryAction, { borderColor, borderWidth: 1 }]}
-          onPress={() => router.push('/new-client')}
+          onPress={() => router.push("/new-client")}
         >
           <UserPlus size={24} color={textColor} />
           <ThemedText style={{ color: textColor }}>Onboard New</ThemedText>
@@ -132,8 +182,14 @@ export default function ClientsScreen() {
         onRefresh={refetch}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <ShieldAlert size={48} color={textColor} style={{ opacity: 0.2, marginBottom: 16 }} />
-            <ThemedText style={{ opacity: 0.5 }}>No clients onboarded yet.</ThemedText>
+            <ShieldAlert
+              size={48}
+              color={textColor}
+              style={{ opacity: 0.2, marginBottom: 16 }}
+            />
+            <ThemedText style={{ opacity: 0.5 }}>
+              No clients onboarded yet.
+            </ThemedText>
           </View>
         }
       />
@@ -147,36 +203,55 @@ export default function ClientsScreen() {
       >
         <View style={styles.sheetContent}>
           <ThemedText type="precision" style={styles.sheetDesc}>
-            Enter a user's National ID to find them across the platform and add them to your company.
+            Enter a user's National ID to find them across the platform and add
+            them to your company.
           </ThemedText>
 
           <View style={[styles.searchInputRow, { borderColor }]}>
-            <TextInput 
+            <TextInput
               style={[styles.searchInput, { color: textColor }]}
               placeholder="Enter National ID..."
               placeholderTextColor="#999"
               value={nationalIdSearch}
               onChangeText={setNationalIdSearch}
             />
-            <TouchableOpacity onPress={handleDiscoverySearch} disabled={isSearching}>
-              {isSearching ? <ActivityIndicator size="small" color={tintColor} /> : <Search size={24} color={tintColor} />}
+            <TouchableOpacity
+              onPress={handleDiscoverySearch}
+              disabled={isSearching}
+            >
+              {isSearching ? (
+                <ActivityIndicator size="small" color={tintColor} />
+              ) : (
+                <Search size={24} color={tintColor} />
+              )}
             </TouchableOpacity>
           </View>
 
           {foundUser && (
-            <View style={[styles.foundUserCard, { backgroundColor: background, borderColor }]}>
+            <View
+              style={[
+                styles.foundUserCard,
+                { backgroundColor: background, borderColor },
+              ]}
+            >
               <View style={styles.foundUserInfo}>
-                <ThemedText type="boldPrecision">{foundUser.fullName}</ThemedText>
-                <ThemedText type="precision" style={{ fontSize: 13, opacity: 0.6 }}>
+                <ThemedText type="boldPrecision">
+                  {foundUser.fullName}
+                </ThemedText>
+                <ThemedText
+                  type="precision"
+                  style={{ fontSize: 13, opacity: 0.6 }}
+                >
                   {foundUser.email} • {foundUser.phone}
                 </ThemedText>
               </View>
-              <Button 
-                title="Link to Company" 
+              <Button
+                title="Link to Company"
                 onPress={() => linkMutation.mutate(foundUser._id)}
                 isLoading={linkMutation.isPending}
                 borderRadius={8}
-                style={{ height: 40 }}
+                style={{ height: 40, backgroundColor: tintColor }}
+                textStyle={{ color: background, fontFamily: 'Inter_600SemiBold' }}
               />
             </View>
           )}
@@ -210,7 +285,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   actionRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 24,
     paddingTop: 0,
     gap: 12,
@@ -219,21 +294,20 @@ const styles = StyleSheet.create({
     flex: 1.5,
     height: 100,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
   },
   secondaryAction: {
     flex: 1,
     height: 100,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
   },
   actionText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   listContent: {
     padding: 24,
@@ -241,8 +315,8 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   clientCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
@@ -252,13 +326,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.05)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   avatarText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     opacity: 0.5,
   },
   clientInfo: {
@@ -282,14 +356,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyState: {
     flex: 1,
     padding: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   sheetContent: {
     padding: 24,
@@ -301,8 +375,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   searchInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 16,
@@ -317,13 +391,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 16,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 1,
   },
   foundUserInfo: {
     flex: 1,
     marginRight: 10,
-  }
+  },
 });

@@ -15,8 +15,12 @@ export interface ILoan {
   repaymentFrequency: 'daily' | 'weekly' | 'biweekly';
   totalRepaid: number;
   remainingBalance: number;
+  penaltyAmount: number;
+  isPenaltyApplied: boolean;
   purpose?: string;
+  company: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface ISchedule {

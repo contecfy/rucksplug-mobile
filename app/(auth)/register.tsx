@@ -5,8 +5,13 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { usePublicCompanies } from "@/hooks/use-company";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useRouter } from "expo-router";
-import { Building2, Check, ChevronLeft, Search } from "lucide-react-native";
-import { BottomSheet, Button, Header, Toast, PhoneInput } from "prizmux";
+import {
+  Building,
+  Check,
+  ChevronLeft,
+  Search
+} from "lucide-react-native";
+import { BottomSheet, Button, Header, PhoneInput, Toast } from "prizmux";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -44,7 +49,9 @@ export default function RegisterScreen() {
     full: "",
   });
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [nationalId, setNationalId] = useState("");
+  const [pin, setPin] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [selectedRole, setSelectedRole] = useState<
     "loan_officer" | "manager" | "accountant" | "collector"
@@ -79,15 +86,27 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     if (
       !fullName ||
+      !username ||
       !email ||
       !password ||
       !nationalId ||
+      !pin ||
       !selectedCompany ||
       !phone.number
     ) {
       setToastMessage({
         title: "Missing Info",
-        desc: "Please fill in all required fields including National ID, phone and company.",
+        desc: "Please fill in all required fields including Username.",
+        type: "error",
+      });
+      setToastVisible(true);
+      return;
+    }
+
+    if (pin.length !== 4) {
+      setToastMessage({
+        title: "Invalid PIN",
+        desc: "PIN must be exactly 4 digits.",
         type: "error",
       });
       setToastVisible(true);
@@ -97,9 +116,11 @@ export default function RegisterScreen() {
     try {
       await registerMutation.mutateAsync({
         fullName,
+        username: username.toLowerCase(),
         email: email.toLowerCase(),
         phone: phone.number,
         password,
+        pin,
         nationalId,
         role: selectedRole,
         companies: [selectedCompany.id], // User's first company
@@ -182,6 +203,25 @@ export default function RegisterScreen() {
               />
 
               <ThemedText type="precision" style={styles.inputLabel}>
+                Username
+              </ThemedText>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: inputBackground,
+                    color: textColor,
+                    borderColor,
+                  },
+                ]}
+                placeholder="Choose a unique username"
+                placeholderTextColor={mutedText}
+                autoCapitalize="none"
+                value={username}
+                onChangeText={setUsername}
+              />
+
+              <ThemedText type="precision" style={styles.inputLabel}>
                 Email Address
               </ThemedText>
               <TextInput
@@ -223,7 +263,10 @@ export default function RegisterScreen() {
                 searchBackgroundColor={inputBackground}
                 searchBorderColor={borderColor}
                 inputStyle={{ fontFamily: "Inter_400Regular" }}
-                labelStyle={{ color: textColor, fontFamily: "Inter_400Regular" }}
+                labelStyle={{
+                  color: textColor,
+                  fontFamily: "Inter_400Regular",
+                }}
                 renderFlag={renderFlag}
               />
 
@@ -266,6 +309,28 @@ export default function RegisterScreen() {
               />
 
               <ThemedText type="precision" style={styles.inputLabel}>
+                Authentication PIN (4 Digits)
+              </ThemedText>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: inputBackground,
+                    color: textColor,
+                    borderColor,
+                    fontFamily: "Inter_400Regular",
+                  },
+                ]}
+                placeholder="Set a 4-digit numeric PIN"
+                placeholderTextColor={mutedText}
+                keyboardType="numeric"
+                secureTextEntry
+                maxLength={4}
+                value={pin}
+                onChangeText={setPin}
+              />
+
+              <ThemedText type="precision" style={styles.inputLabel}>
                 Choose Company
               </ThemedText>
               <TouchableOpacity
@@ -282,7 +347,7 @@ export default function RegisterScreen() {
                     gap: 10,
                   }}
                 >
-                  <Building2
+                  <Building
                     size={18}
                     color={selectedCompany ? tintColor : mutedText}
                   />
@@ -318,10 +383,10 @@ export default function RegisterScreen() {
                 fullWidth
                 borderRadius={12}
                 style={
-                  [{ marginTop: 30, backgroundColor: buttonBackground }] as any
+                  [{ marginTop: 30, backgroundColor: theme === 'dark' ? '#222' : buttonBackground }] as any
                 }
                 textStyle={{
-                  color: buttonText,
+                  color: '#FFF',
                   fontFamily: "Inter_600SemiBold",
                 }}
               />

@@ -10,6 +10,8 @@ import {
   ArrowUpRight, 
   Calendar,
   Layers,
+  Info,
+  Building2,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
@@ -17,6 +19,8 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { reportApi } from '@/api/report';
+import { useAuthStore } from '@/store/auth-store';
+import { useCompany } from '@/hooks/use-company';
 
 const { width } = Dimensions.get('window');
 
@@ -33,10 +37,14 @@ export default function DashboardScreen() {
   const infoColor = useThemeColor({}, 'info');
   const shadowColor = useThemeColor({}, 'black');
 
+  const { user, activeCompanyId } = useAuthStore();
+  
   const { data: summary, isLoading, refetch } = useQuery({
     queryKey: ['financial-summary'],
     queryFn: () => reportApi.getFinancialSummary(),
   });
+
+  const { data: company } = useCompany(activeCompanyId);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -68,8 +76,17 @@ export default function DashboardScreen() {
       {/* Header */}
       <View style={[styles.header, { backgroundColor: background }]}>
         <View>
-          <ThemedText style={styles.welcomeText}>Hello, Admin</ThemedText>
-          <ThemedText type="boldPrecision" style={styles.dashboardTitle}>Dashboard</ThemedText>
+          <ThemedText style={styles.welcomeText}>Welcome back, {user?.fullName?.split(' ')[0]}</ThemedText>
+          <View style={styles.companyTitleContainer}>
+            <ThemedText type="boldPrecision" style={styles.dashboardTitle}>
+              {company?.name || 'Dashboard'}
+            </ThemedText>
+            {company && (
+              <ThemedText style={styles.companySubTitle}>
+                {company.website || company.address || 'v1.0.0'}
+              </ThemedText>
+            )}
+          </View>
         </View>
         <TouchableOpacity style={[styles.profileButton, { backgroundColor: cardBackground, borderColor }]}>
           <Users color={tintColor} size={20} />
@@ -197,6 +214,15 @@ const styles = StyleSheet.create({
   },
   dashboardTitle: {
     fontSize: 24,
+    lineHeight: 28,
+  },
+  companyTitleContainer: {
+    marginTop: 2,
+  },
+  companySubTitle: {
+    fontSize: 12,
+    opacity: 0.5,
+    fontFamily: 'Inter_400Regular',
   },
   profileButton: {
     width: 44,
@@ -345,5 +371,33 @@ const styles = StyleSheet.create({
   bannerDescription: {
     fontSize: 12,
     opacity: 0.5,
+  },
+  companyCard: {
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    gap: 16,
+  },
+  companyInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  infoIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoLabel: {
+    fontSize: 12,
+    opacity: 0.5,
+    marginBottom: 2,
+  },
+  policyText: {
+    fontSize: 13,
+    lineHeight: 18,
+    opacity: 0.7,
   },
 });

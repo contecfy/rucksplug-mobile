@@ -1,41 +1,67 @@
-import React, { useCallback } from 'react';
-import { StyleSheet, View, FlatList, RefreshControl, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { Toast } from 'prizmux';
-import { Plus, Wallet, Calendar, AlertCircle, CheckCircle, Clock } from 'lucide-react-native';
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import {
+  AlertCircle,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Plus,
+  Wallet,
+} from "lucide-react-native";
+import { EmptyState, Toast } from "prizmux";
+import React from "react";
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  View,
+} from "react-native";
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { loanApi, ILoan } from '@/api/loan';
+import { ILoan, loanApi } from "@/api/loan";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useThemeColor } from "@/hooks/use-theme-color";
 
 export default function LoansScreen() {
   const router = useRouter();
-  const textColor = useThemeColor({}, 'text');
-  const cardBackground = useThemeColor({}, 'card');
-  const tintColor = useThemeColor({}, 'tint');
-  const successColor = useThemeColor({}, 'success');
-  const warningColor = useThemeColor({}, 'warning');
-  const dangerColor = useThemeColor({}, 'danger');
-  const infoColor = useThemeColor({}, 'info');
-  const borderColor = useThemeColor({}, 'borderColor');
-  const fabIconColor = useThemeColor({}, 'background'); // High contrast on tint
+  const textColor = useThemeColor({}, "text");
+  const cardBackground = useThemeColor({}, "card");
+  const tintColor = useThemeColor({}, "tint");
+  const successColor = useThemeColor({}, "success");
+  const warningColor = useThemeColor({}, "warning");
+  const dangerColor = useThemeColor({}, "danger");
+  const infoColor = useThemeColor({}, "info");
+  const borderColor = useThemeColor({}, "borderColor");
+  const fabIconColor = useThemeColor({}, "background"); // High contrast on tint
 
-  const { data: loans, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['loans'],
+  const {
+    data: loans,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["loans"],
     queryFn: loanApi.getLoans,
   });
 
   const [toastVisible, setToastVisible] = React.useState(false);
-  const [toastMessage, setToastMessage] = React.useState({ title: '', desc: '', type: 'error' as 'error' | 'success' });
+  const [toastMessage, setToastMessage] = React.useState({
+    title: "",
+    desc: "",
+    type: "error" as "error" | "success",
+  });
 
   React.useEffect(() => {
     if (isError) {
-      setToastMessage({ 
-        title: 'Fetch Failed', 
-        desc: (error as any)?.response?.data?.message || (error as any)?.message || 'Could not load loans', 
-        type: 'error' 
+      setToastMessage({
+        title: "Fetch Failed",
+        desc:
+          (error as any)?.response?.data?.message ||
+          (error as any)?.message ||
+          "Could not load loans",
+        type: "error",
       });
       setToastVisible(true);
     }
@@ -43,14 +69,14 @@ export default function LoansScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ongoing':
-      case 'approved':
+      case "ongoing":
+      case "approved":
         return successColor;
-      case 'pending':
+      case "pending":
         return warningColor;
-      case 'defaulted':
+      case "defaulted":
         return dangerColor;
-      case 'completed':
+      case "completed":
         return infoColor;
       default:
         return textColor;
@@ -59,12 +85,12 @@ export default function LoansScreen() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'ongoing':
-      case 'approved':
+      case "ongoing":
+      case "approved":
         return <CheckCircle size={14} color="#FFF" />;
-      case 'pending':
+      case "pending":
         return <Clock size={14} color="#FFF" />;
-      case 'defaulted':
+      case "defaulted":
         return <AlertCircle size={14} color="#FFF" />;
       default:
         return null;
@@ -72,11 +98,15 @@ export default function LoansScreen() {
   };
 
   const renderLoanCard = ({ item }: { item: ILoan }) => {
-    const clientName = typeof item.client === 'object' ? item.client.fullName : 'Guest';
+    const clientName =
+      typeof item.client === "object" ? item.client.fullName : "Guest";
 
     return (
-      <Pressable 
-        style={[styles.loanCard, { backgroundColor: cardBackground, borderColor }]}
+      <Pressable
+        style={[
+          styles.loanCard,
+          { backgroundColor: cardBackground, borderColor },
+        ]}
         onPress={() => router.push(`/loan/${item._id}`)}
       >
         <View style={styles.cardHeader}>
@@ -86,9 +116,16 @@ export default function LoansScreen() {
             </ThemedText>
             <ThemedText style={styles.clientNameText}>{clientName}</ThemedText>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(item.status) },
+            ]}
+          >
             {getStatusIcon(item.status)}
-            <ThemedText style={styles.statusText}>{item.status.toUpperCase()}</ThemedText>
+            <ThemedText style={styles.statusText}>
+              {item.status.toUpperCase()}
+            </ThemedText>
           </View>
         </View>
 
@@ -112,28 +149,35 @@ export default function LoansScreen() {
 
   return (
     <ThemedView style={styles.container}>
-
-
       <FlatList
         data={loans}
         renderItem={renderLoanCard}
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refetch} tintColor={tintColor} />
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={refetch}
+            tintColor={tintColor}
+          />
         }
         ListEmptyComponent={
           !isLoading ? (
-            <View style={styles.emptyContainer}>
-              <ThemedText style={styles.emptyText}>No active loans found.</ThemedText>
-            </View>
+            <EmptyState
+              style={styles.emptyContainer}
+              titleStyle={{ color: textColor }}
+              descriptionStyle={{ color: textColor }}
+              title="No Active Loans"
+              description="You don't have any active loans at the moment."
+              icon={<Wallet size={48} color={tintColor} />}
+            />
           ) : null
         }
       />
 
       <Pressable
         style={[styles.fab, { backgroundColor: tintColor }]}
-        onPress={() => router.push('/new-loan')}
+        onPress={() => router.push("/new-loan")}
       >
         <Plus color={fabIconColor} size={30} />
       </Pressable>
@@ -167,9 +211,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 20,
   },
   amountText: {
@@ -180,34 +224,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.5,
     marginBottom: 2,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "Inter_600SemiBold",
   },
   purposeText: {
     opacity: 0.6,
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
     gap: 4,
   },
   statusText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingTop: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E0E0E0',
+    borderTopColor: "#E0E0E0",
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   icon: {
@@ -219,23 +263,24 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 100,
+    backgroundColor: "transparent",
   },
   emptyText: {
     opacity: 0.5,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     right: 24,
     bottom: 24,
     width: 64,
     height: 64,
     borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: "rgba(255,255,255,0.2)",
   },
 });

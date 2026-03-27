@@ -17,7 +17,7 @@ export const useLogin = () => {
   });
 };
 
-export const useRegister = () => {
+export const useRegister = (shouldAutoLogin = true) => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   return useMutation({
@@ -26,7 +26,9 @@ export const useRegister = () => {
       return data;
     },
     onSuccess: async (data) => {
-      await setAuth(data.user, data.token);
+      if (shouldAutoLogin) {
+        await setAuth(data.user, data.token);
+      }
     },
   });
 };

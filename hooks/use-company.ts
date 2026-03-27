@@ -10,3 +10,15 @@ export const usePublicCompanies = () => {
     },
   });
 };
+
+export const useCompany = (id: string | null) => {
+  return useQuery({
+    queryKey: ['company', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data } = await apiClient.get<any>(`/companies/${id}`);
+      return data;
+    },
+    enabled: !!id,
+  });
+};

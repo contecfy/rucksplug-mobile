@@ -1,7 +1,8 @@
 import {
   Inter_400Regular,
   Inter_600SemiBold,
-  Inter_700Bold, useFonts
+  Inter_700Bold,
+  useFonts,
 } from "@expo-google-fonts/inter";
 import {
   DarkTheme,
@@ -77,6 +78,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="new-loan" options={{ headerShown: false }} />
           <Stack.Screen name="loan/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="new-client" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="auto" />
