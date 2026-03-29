@@ -67,7 +67,7 @@ export default function LoginScreen() {
         setToastVisible(true);
         return;
       }
-      loginParams = { phone: phone.number, pin };
+      loginParams = { phone: phone.full, pin };
     } else {
       if (!email || !password) {
         setToastMessage({
@@ -91,11 +91,17 @@ export default function LoginScreen() {
       setToastVisible(true);
       router.replace("/(tabs)");
     } catch (error: any) {
+      console.error("Login error:", error);
       const message =
         error.response?.data?.message ||
         error.message ||
         "Check your credentials and try again.";
-      setToastMessage({ title: "Login Failed", desc: message, type: "error" });
+      const detail = error.response?.data?.error || "";
+      setToastMessage({ 
+        title: "Login Failed", 
+        desc: detail ? `${message} (${detail})` : message, 
+        type: "error" 
+      });
       setToastVisible(true);
     }
   };

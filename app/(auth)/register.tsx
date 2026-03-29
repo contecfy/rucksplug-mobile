@@ -118,7 +118,7 @@ export default function RegisterScreen() {
         fullName,
         username: username.toLowerCase(),
         email: email.toLowerCase(),
-        phone: phone.number,
+        phone: phone.full,
         password,
         pin,
         nationalId,
